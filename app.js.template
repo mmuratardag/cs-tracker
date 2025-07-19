@@ -17,15 +17,14 @@ import {
     Timestamp 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// --- IMPORTANT: PASTE YOUR FIREBASE CONFIGURATION HERE ---
+// FIREBASE Placeholders for GitHub Actions
 const firebaseConfig = {
-  apiKey: "AIzaSyDyGUgIbYGr0JyRitpKB20ylNBngCwNaWg",
-  authDomain: "cs-tracker-e58fc.firebaseapp.com",
-  projectId: "cs-tracker-e58fc",
-  storageBucket: "cs-tracker-e58fc.firebasestorage.app",
-  messagingSenderId: "98713847072",
-  appId: "1:98713847072:web:22eb8b84a8eb3133ef0345",
-  measurementId: "G-36WD4X5N6V"
+  apiKey: "__FIREBASE_API_KEY__",
+  authDomain: "__FIREBASE_AUTH_DOMAIN__",
+  projectId: "__FIREBASE_PROJECT_ID__",
+  storageBucket: "__FIREBASE_STORAGE_BUCKET__",
+  messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
+  appId: "__FIREBASE_APP_ID__"
 };
 
 // --- Initialize Firebase ---
