@@ -1,0 +1,235 @@
+// Import the necessary functions from the Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    query, 
+    where, 
+    getDocs,
+    Timestamp 
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// --- IMPORTANT: PASTE YOUR FIREBASE CONFIGURATION HERE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDyGUgIbYGr0JyRitpKB20ylNBngCwNaWg",
+  authDomain: "cs-tracker-e58fc.firebaseapp.com",
+  projectId: "cs-tracker-e58fc",
+  storageBucket: "cs-tracker-e58fc.firebasestorage.app",
+  messagingSenderId: "98713847072",
+  appId: "1:98713847072:web:22eb8b84a8eb3133ef0345",
+  measurementId: "G-36WD4X5N6V"
+};
+
+// --- Initialize Firebase ---
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// --- DOM Element References ---
+const authForm = document.getElementById('auth-form');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const signupBtn = document.getElementById('signup-btn');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const showDataBtn = document.getElementById('show-data-btn');
+const logDataPre = document.getElementById('log-data');
+const userInfoP = document.getElementById('user-info');
+const authContainer = document.getElementById('auth-container');
+
+// A temporary session ID for anonymous users before they sign up
+const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+let currentUserId = null;
+
+/**
+ * A generic function to log an event to Firestore.
+ * It logs data for the current user if logged in, otherwise for the anonymous session.
+ * @param {string} eventType - The type of event (e.g., 'mousemove', 'click').
+ * @param {object} eventData - The data associated with the event.
+ */
+async function logEvent(eventType, eventData) {
+    try {
+        const docData = {
+            type: eventType,
+            data: eventData,
+            timestamp: Timestamp.now(),
+            userAgent: navigator.userAgent,
+            url: window.location.href,
+            // Use the logged-in user's ID or the temporary session ID
+            ownerId: currentUserId || sessionId 
+        };
+        await addDoc(collection(db, "userEvents"), docData);
+    } catch (error) {
+        console.error("Error writing document: ", error);
+    }
+}
+
+// --- Event Listeners for Tracking ---
+
+// 1. Log initial visit information
+document.addEventListener('DOMContentLoaded', () => {
+    const initialData = {
+        referrer: document.referrer || 'Direct visit',
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        language: navigator.language,
+    };
+    logEvent('initial-visit', initialData);
+});
+
+// 2. Log mouse movements (throttled to avoid too many logs)
+let mouseMoveTimeout;
+document.addEventListener('mousemove', (e) => {
+    clearTimeout(mouseMoveTimeout);
+    mouseMoveTimeout = setTimeout(() => {
+        const moveData = { x: e.clientX, y: e.clientY };
+        logEvent('mousemove', moveData);
+    }, 500); // Log every 500ms at most
+});
+
+// 3. Log clicks
+document.addEventListener('click', (e) => {
+    const clickData = {
+        x: e.clientX,
+        y: e.clientY,
+        targetTag: e.target.tagName,
+        targetId: e.target.id || 'N/A',
+    };
+    logEvent('click', clickData);
+});
+
+// 4. Log key presses (ignoring password field for privacy)
+document.addEventListener('keyup', (e) => {
+    if (e.target.id === 'password') return; // Don't log password keystrokes
+
+    // Check if the target is an input or textarea
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        const keyData = {
+            key: e.key,
+            targetId: e.target.id || 'N/A',
+            currentValue: e.target.value // Log the full content on key up
+        };
+        logEvent('key-press', keyData);
+    }
+});
+
+
+// --- Authentication Logic ---
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // User is signed in
+        currentUserId = user.uid;
+        userInfoP.textContent = `Logged in as: ${user.email}`;
+        authForm.style.display = 'none'; // Hide form
+        logoutBtn.classList.remove('hidden');
+        showDataBtn.disabled = false;
+        showDataBtn.textContent = 'Show me what the website logs about me';
+        showDataBtn.classList.replace('bg-indigo-600', 'bg-green-600');
+        showDataBtn.classList.replace('hover:bg-indigo-700', 'hover:bg-green-700');
+    } else {
+        // User is signed out
+        currentUserId = null;
+        userInfoP.textContent = '';
+        authForm.style.display = 'block'; // Show form
+        logoutBtn.classList.add('hidden');
+        showDataBtn.disabled = true;
+        showDataBtn.textContent = 'Log in to see your data';
+        showDataBtn.classList.replace('bg-green-600', 'bg-indigo-600');
+        showDataBtn.classList.replace('hover:bg-green-700', 'hover:bg-indigo-700');
+        logDataPre.textContent = 'Your logged events will appear here...';
+    }
+});
+
+authForm.addEventListener('submit', (e) => e.preventDefault());
+
+signupBtn.addEventListener('click', async () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        console.log("Signed up:", userCredential.user);
+        // The onAuthStateChanged observer will handle the UI update
+    } catch (error) {
+        console.error("Sign up error:", error);
+        alert(`Sign up failed: ${error.message}`);
+    }
+});
+
+loginBtn.addEventListener('click', async () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log("Logged in:", userCredential.user);
+    } catch (error) {
+        console.error("Login error:", error);
+        alert(`Login failed: ${error.message}`);
+    }
+});
+
+logoutBtn.addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+        console.log("Logged out");
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+});
+
+
+// --- Data Display Logic ---
+
+showDataBtn.addEventListener('click', async () => {
+    if (!currentUserId) {
+        alert("You must be logged in to view your data.");
+        return;
+    }
+
+    logDataPre.textContent = "Fetching your data...";
+
+    try {
+        // Query for events belonging to the current user OR the anonymous session
+        // that happened before they logged in.
+        const q = query(
+            collection(db, "userEvents"), 
+            where("ownerId", "in", [currentUserId, sessionId])
+        );
+        
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            logDataPre.textContent = "No data logged for your session yet.";
+            return;
+        }
+
+        let formattedLog = "";
+        const events = [];
+        querySnapshot.forEach((doc) => {
+            events.push(doc.data());
+        });
+
+        // Sort events by timestamp
+        events.sort((a, b) => a.timestamp.seconds - b.timestamp.seconds);
+
+        events.forEach(event => {
+            const date = event.timestamp.toDate().toLocaleString();
+            const eventString = JSON.stringify(event.data, null, 2);
+            formattedLog += `[${date}] - ${event.type}\n${eventString}\n\n`;
+        });
+
+        logDataPre.textContent = formattedLog;
+
+    } catch (error) {
+        console.error("Error fetching documents: ", error);
+        logDataPre.textContent = "Error fetching data. Check the console.";
+    }
+});

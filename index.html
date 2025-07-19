@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Portfolio: Visitor Tracker</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Style for the logged data display */
+        pre {
+            font-family: 'Roboto Mono', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 antialiased">
+
+    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-cyan-400 mb-2">Visitor Activity Logging Demo</h1>
+            <p class="text-lg text-gray-400">A practical demonstration of client-side data tracking.</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            <!-- Left Column: Explanation & Auth -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-white">What This Site Tracks</h2>
+                <p class="text-gray-300 mb-4">
+                    This website is an educational project to demonstrate what information a typical website can log about its visitors using only browser-based technologies (JavaScript). 
+                </p>
+                <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                    <li>Initial visit details (referrer, screen size).</li>
+                    <li>All mouse movements and clicks.</li>
+                    <li>Text typed into non-sensitive fields.</li>
+                    <li>Pages you visit within this site.</li>
+                </ul>
+                <p class="text-gray-300 mb-6">
+                    Create an account to see the data this site has logged specifically for your session.
+                </p>
+
+                <!-- Authentication Form -->
+                <div id="auth-container">
+                    <form id="auth-form" class="space-y-4">
+                        <input type="email" id="email" placeholder="Enter your email" class="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" required>
+                        <input type="password" id="password" placeholder="Choose a password" class="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" required>
+                        <div class="flex space-x-2">
+                            <button type="submit" id="signup-btn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Sign Up</button>
+                            <button type="button" id="login-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Log In</button>
+                        </div>
+                    </form>
+                    <div id="auth-status" class="mt-4 text-center">
+                        <p id="user-info" class="text-green-400"></p>
+                        <button id="logout-btn" class="hidden mt-2 text-sm text-cyan-400 hover:underline">Log Out</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Log Display -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Your Logged Data</h2>
+                <button id="show-data-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 mb-4" disabled>
+                    Log in to see your data
+                </button>
+                <div id="log-display-container" class="bg-gray-900 rounded-md p-4 h-96 overflow-y-auto border border-gray-700">
+                    <pre id="log-data" class="text-sm text-gray-300">Your logged events will appear here...</pre>
+                </div>
+                 <p id="data-notice" class="text-xs text-gray-500 mt-2 text-center">Data is stored per-session and linked to your account upon creation.</p>
+            </div>
+
+        </main>
+
+        <footer class="text-center mt-10 text-gray-500 text-sm">
+            <p>Built for educational purposes. Be mindful of what you type.</p>
+        </footer>
+
+    </div>
+
+    <!-- Firebase App and Firestore -->
+    <script type="module" src="app.js"></script>
+
+</body>
+</html>
